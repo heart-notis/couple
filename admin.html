@@ -227,7 +227,7 @@
     .nudge button { width: 38px; height: 32px; border-radius: 10px; background: #eef1f4; font-weight: 800; color: #4a4f57; }
     .prof-row { display: flex; gap: 14px; align-items: center; min-width: 0; }
     .prof-row .img-side { min-width: 0; gap: 6px; }
-    .ava-prev { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--soft); box-shadow: 0 0 0 3px #d9cdfb; }
+    .ava-prev { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--soft); box-shadow: 0 0 0 3px var(--ring, #d9cdfb); }
     .ava-prev img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .ban-prev { width: 100%; aspect-ratio: 5 / 2; border-radius: 12px; background: var(--soft) center / cover no-repeat; border: 1px solid var(--line); }
     .links-box { display: flex; flex-direction: column; gap: 8px; }
@@ -277,6 +277,16 @@
     .style-pick .sw i { position: absolute; height: 11px; border-radius: 6px; }
     .style-pick .sw i:first-child { left: 7px; top: 9px; width: 46%; }
     .style-pick .sw i:last-child { right: 7px; bottom: 9px; width: 40%; }
+    .pal-pick { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    @media (max-width: 480px) { .pal-pick { grid-template-columns: repeat(4, 1fr); } }
+    .pal-pick button, .pal-pick label { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .72rem; font-weight: 700; color: #4a4f57; padding: 6px 2px; border-radius: 12px; border: 2px solid transparent; cursor: pointer; position: relative; }
+    .pal-pick .on { border-color: var(--accent); background: var(--soft); }
+    .pal-pick .dot { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(255,255,255,.6), 0 2px 6px rgba(0,0,0,.1); }
+    .pal-pick label input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .pal-demo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; background: var(--soft); }
+    .pal-demo .dd { padding: 2px 10px; border-radius: 999px; background: var(--grad); color: #fff; font-size: .76rem; font-weight: 800; }
+    .pal-demo .fl { padding: 5px 14px; border-radius: 999px; border: 1.5px solid var(--accent); color: var(--accent); font-size: .78rem; font-weight: 700; background: #fff; }
+    .pal-demo .tx { font-size: .8rem; font-weight: 700; color: var(--accent); }
     .f select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; outline: none; font-weight: 600; background: #fff; }
     .toast { position: fixed; left: 50%; bottom: 80px; transform: translate(-50%, 20px); background: var(--grad); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: .86rem; font-weight: 600; opacity: 0; pointer-events: none; transition: all .3s; z-index: 60; }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -354,6 +364,10 @@
               </div>
             </div>
             <div class="ban-prev" id="banPrev"></div>
+          </div>
+          <div class="f">🎨 사이트 메인 색 <small>버튼 · D+ 배지 · 하트 · 탭 색이 다 같이 바뀌어요. 누르면 바로 저장돼요.</small>
+            <div class="pal-pick" id="pf_color"></div>
+            <div class="pal-demo"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="url(#hg)" d="M12 21.2s-8.6-5.2-10.4-10.6C.3 6.6 2.8 2.8 6.7 2.8c2.3 0 4.1 1.2 5.3 3.1 1.2-1.9 3-3.1 5.3-3.1 3.9 0 6.4 3.8 5.1 7.8C20.6 16 12 21.2 12 21.2z"/></svg><span class="dd">D+115일</span><span class="fl">팔로우</span><span class="tx">#우진도하</span></div>
           </div>
           <label class="f">소개글<textarea id="pf_bio" style="min-height:110px"></textarea></label>
           <div class="row">
@@ -1110,8 +1124,28 @@
       $("pf_link").value = f.link || "";
       $("pf_linkLabel").value = f.linkLabel || "";
       $("avaRecrop").classList.toggle("hidden", !f.avatar);
+      renderPalette();
       $("banRecrop").classList.toggle("hidden", !f.banner);
     }
+    // 🎨 메인 색 고르기
+    const ADMIN_MAP = { "--blue": "--accent", "--blue-dark": "--accent-dark", "--blue-soft": "--soft", "--grad-strong": "--grad", "--grad": "--grad-light" };
+    function renderPalette() {
+      const cur = data.profile.color || "lavender", custom = /^#/.test(cur);
+      KK.applyPalette(cur, ADMIN_MAP);
+      $("pf_color").innerHTML = Object.entries(KK.PALETTES).map(([k, v]) => `<button type="button" data-pal="${k}" class="${cur === k ? "on" : ""}"><span class="dot" style="background:linear-gradient(135deg,${v.stops.join(",")})"></span>${v.label}</button>`).join("")
+        + `<label class="${custom ? "on" : ""}"><span class="dot" style="background:${custom ? `linear-gradient(135deg,${KK.palette(cur).stops.join(",")})` : "conic-gradient(#f58fb4,#ffd27a,#7fdcc0,#7fc3f7,#b07cf7,#f58fb4)"}"></span>직접 고르기<input type="color" id="pf_colorPick" value="${custom ? cur : "#f58fb4"}" /></label>`;
+      $("pf_colorPick").oninput = e => setColor(e.target.value, true);
+      $("pf_colorPick").onchange = e => setColor(e.target.value);
+    }
+    let colorT = 0;
+    function setColor(key, live) {
+      data.profile.color = key;
+      if (key === "lavender") delete data.profile.color;
+      if (live) { KK.applyPalette(key, ADMIN_MAP); clearTimeout(colorT); colorT = setTimeout(() => saveDraft(), 300); return; }
+      renderPalette(); saveDraft();
+    }
+    $("pf_color").onclick = e => { const b = e.target.closest("[data-pal]"); if (b) { setColor(b.dataset.pal); toast(`메인 색: ${KK.PALETTES[b.dataset.pal].label} 💜`); } };
+
     // 프사: 정사각형으로 자르고 큰 것(400) · 작은 것(144) 두 장 만들기
     async function setAvatarFrom(src) {
       const cv = await cropImage(await loadImage(src), { W: 400, H: 400, round: true, title: "프로필 사진 자르기", raw: true });

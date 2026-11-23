@@ -64,6 +64,66 @@
     return out;
   }
 
+
+  /* ---------- 🎨 사이트 메인 색 ----------
+     프리셋 이름("pink") 또는 "#ff88aa" 같은 색 하나 → 그라데이션 · 연한 색까지 자동으로 만들어요 */
+  const PALETTES = {
+    lavender: { label: "라벤더", stops: ["#a993f4", "#8fb2f3", "#74c6f0"], accent: "#8b7cf0" },
+    pink:     { label: "핑크",   stops: ["#f58fb4", "#f7a8c4", "#ffc2a8"], accent: "#e0659a" },
+    rose:     { label: "장미",   stops: ["#e0526b", "#f07d8a", "#f9a8a8"], accent: "#c8405a" },
+    peach:    { label: "피치",   stops: ["#ff8f7a", "#ffb07a", "#ffd27a"], accent: "#e8745c" },
+    lemon:    { label: "레몬",   stops: ["#f2c230", "#f7d66a", "#ffe9a3"], accent: "#c49a0a" },
+    mint:     { label: "민트",   stops: ["#4fc9a8", "#7fdcc0", "#a8e6e0"], accent: "#2fa58f" },
+    sky:      { label: "하늘",   stops: ["#5aa9f5", "#7fc3f7", "#a8dcf8"], accent: "#3c8fe0" },
+    grape:    { label: "포도",   stops: ["#8a5cf6", "#b07cf7", "#e0a3f5"], accent: "#7c4ddb" },
+    mono:     { label: "모노",   stops: ["#5b616b", "#8d949e", "#c3c8cf"], accent: "#4a4f57" }
+  };
+  const hx = h => { h = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); };
+  const toHex = rgb => "#" + rgb.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+  const mix = (a, b, t) => { const A = hx(a), B = hx(b); return toHex(A.map((v, i) => v + (B[i] - v) * t)); };
+  const rgba = (h, a) => `rgba(${hx(h).join(",")},${a})`;
+  function hsl2hex(h, s, l) {
+    h = ((h % 360) + 360) % 360 / 360; s = Math.max(0, Math.min(1, s)); l = Math.max(0, Math.min(1, l));
+    const f = n => { const k = (n + h * 12) % 12, a = s * Math.min(l, 1 - l); return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+    return toHex([f(0) * 255, f(8) * 255, f(4) * 255]);
+  }
+  function hex2hsl(h) {
+    const [r, g, b] = hx(h).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    if (!d) return [0, 0, l];
+    const s = d / (1 - Math.abs(2 * l - 1));
+    const H = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return [H * 60, s, l];
+  }
+  function palette(key) {
+    let P = PALETTES[key];
+    if (!P && /^#[0-9a-f]{6}$/i.test(key || "")) {     // 직접 고른 색 하나로 만들기
+      const [h, s, l] = hex2hsl(key), L = Math.max(.5, Math.min(.68, l)), S = Math.max(.45, s);
+      P = { stops: [hsl2hex(h, S, L), hsl2hex(h + 16, S, L + .06), hsl2hex(h + 32, S, L + .12)], accent: hsl2hex(h, S, Math.min(.55, L - .04)) };
+      if (s < .12) P = { stops: [key, mix(key, "#ffffff", .3), mix(key, "#ffffff", .55)], accent: mix(key, "#000000", .1) };
+    }
+    P = P || PALETTES.lavender;
+    const [a, b, c] = P.stops, ac = P.accent;
+    return {
+      stops: P.stops, accent: ac,
+      vars: {
+        "--blue": ac, "--blue-dark": mix(ac, "#000000", .1), "--blue-soft": mix(ac, "#ffffff", .9),
+        "--heart": ac, "--heart-soft": mix(ac, "#ffffff", .9),
+        "--grad": `linear-gradient(120deg, ${mix(a, "#ffffff", .35)} 0%, ${mix(b, "#ffffff", .35)} 50%, ${mix(c, "#ffffff", .35)} 100%)`,
+        "--grad-strong": `linear-gradient(120deg, ${a} 0%, ${b} 50%, ${c} 100%)`,
+        "--ring": mix(a, "#ffffff", .55), "--tint": mix(a, "#ffffff", .94), "--glow": rgba(a, .35)
+      },
+      hg: [mix(a, "#ffffff", .15), mix(b, "#ffffff", .15), mix(c, "#ffffff", .15)]
+    };
+  }
+  // 페이지에 바로 입히기 (하트 그라데이션 · 브라우저 위쪽 색까지)
+  function applyPalette(key, map) {
+    const P = palette(key), root = document.documentElement.style;
+    Object.entries(P.vars).forEach(([k, v]) => root.setProperty(map && map[k] || k, v));
+    document.querySelectorAll("#hg stop").forEach((st, i) => st.setAttribute("stop-color", P.hg[i] || P.hg[2]));
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", P.hg[0]);
+    return P;
+  }
+
   /* ---------- 대화창 모양 ----------
      ava: 프사 위치(top 위 · bottom 아래 · none 없음) / time: side 말풍선 옆 · center 가운데 / bg: 커플 배경색을 쓸지 */
   const STYLES = {
@@ -215,5 +275,5 @@
     .st-line .kk-time { color: rgba(255,255,255,.9); }`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
-  window.KK = { parse, render, room, head, dPlus, dLabel, fmt, esc, STYLES };
+  window.KK = { parse, render, room, head, dPlus, dLabel, fmt, esc, STYLES, PALETTES, palette, applyPalette };
 })();

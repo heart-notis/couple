@@ -37,6 +37,7 @@
       --page: #f5f8fa;
       --heart: #9a82f2;
       --heart-soft: #f1eefe;
+      --ring: #d9cdfb; --tint: #faf8ff; --glow: rgba(150,140,240,.35);
       --rt: #17bf63;
       --ratio: 987 / 1216;   /* 게시물 이미지 비율 (가로 987 × 세로 1216) */
       --sans: "Pretendard Variable", "Pretendard", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
@@ -74,7 +75,7 @@
       display: flex; align-items: center; gap: 22px;
       min-height: 53px;
     }
-    .bird { width: 26px; height: 26px; filter: drop-shadow(0 2px 4px rgba(150,130,240,.35)); }
+    .bird { width: 26px; height: 26px; filter: drop-shadow(0 2px 4px var(--glow)); }
     .tb-name { font-weight: 800; font-size: 1.1rem; line-height: 1.2; }
     .tb-sub { font-size: .78rem; color: var(--sub); }
 
@@ -107,7 +108,7 @@
     .banner {
       position: relative;
       aspect-ratio: 3 / 1;
-      background-color: #c4c3f8;
+      background-color: var(--ring);
       background-image:
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90'%3E%3Cg fill='%23ffffff'%3E%3Cpath opacity='.35' d='M20 30s-9-5.5-10.8-11C8 15 10.6 11 14.6 11c2.3 0 4.1 1.2 5.4 3.1 1.2-1.9 3-3.1 5.3-3.1 4 0 6.6 4 5.4 8C28.9 24.5 20 30 20 30z'/%3E%3Cpath opacity='.22' transform='translate(70 45) scale(.6)' d='M20 30s-9-5.5-10.8-11C8 15 10.6 11 14.6 11c2.3 0 4.1 1.2 5.4 3.1 1.2-1.9 3-3.1 5.3-3.1 4 0 6.6 4 5.4 8C28.9 24.5 20 30 20 30z'/%3E%3C/g%3E%3C/svg%3E"),
         var(--grad);
@@ -126,7 +127,7 @@
       border-radius: 50%;
       border: 4px solid #fff;
       background: var(--blue-soft);
-      box-shadow: 0 0 0 3px #d9cdfb;
+      box-shadow: 0 0 0 3px var(--ring);
       position: relative; z-index: 1;
       display: flex; align-items: center; justify-content: center;
       font-size: 3rem; font-weight: 800; color: var(--blue);
@@ -252,7 +253,7 @@
     .t-context { font-size: .8rem; font-weight: 700; color: var(--sub); margin: -2px 0 2px; display: flex; align-items: center; gap: 6px; }
     .t-context svg { width: 14px; height: 14px; }
     /* 📌 고정된 공지: 눈에 잘 띄게 */
-    .tweet.pinned { background: linear-gradient(90deg, #f6f2ff 0%, #f3f8ff 60%, #fff 100%); box-shadow: inset 3px 0 0 #b9a2f6; }
+    .tweet.pinned { background: linear-gradient(90deg, var(--tint) 0%, #fff 100%); box-shadow: inset 3px 0 0 var(--ring); }
     .tweet.pinned:hover { background: linear-gradient(90deg, #f1ebff 0%, #edf5ff 60%, #fbfcff 100%); }
     .t-context.pin-label {
       display: inline-flex; align-self: flex-start; margin: 0 0 5px;
@@ -391,7 +392,7 @@
     .d-head .handle { color: var(--sub); font-size: .9rem; }
     .d-title { margin-top: 14px; font-size: 1.12rem; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; line-height: 1.3; }
     .d-world { font-size: .7rem; font-weight: 700; color: var(--blue); background: var(--blue-soft); padding: 2px 9px; border-radius: 999px; }
-    .d-tagline { margin-top: 10px; padding: 8px 12px; border-left: 3px solid var(--m-quote-line, #c9b8fa); background: var(--m-quote, #faf8ff); border-radius: 0 10px 10px 0; font-size: .88rem; color: var(--m-text2, #4a4f57); white-space: pre-line; }
+    .d-tagline { margin-top: 10px; padding: 8px 12px; border-left: 3px solid var(--ring); background: var(--tint); border-radius: 0 10px 10px 0; font-size: .88rem; color: var(--m-text2, #4a4f57); white-space: pre-line; }
     .d-text { margin-top: 12px; font-size: .92rem; line-height: 1.7; white-space: pre-line; color: var(--m-text, #2b2f35); }
     .d-tags { margin-top: 8px; font-size: .86rem; }
     .t-title { font-weight: 800; font-size: .98rem; margin-top: 2px; }
@@ -410,7 +411,7 @@
       padding: 12px; border-radius: 999px;
       background: var(--grad-strong); color: #fff;
       font-weight: 800; font-size: .95rem;
-      box-shadow: 0 4px 14px rgba(150, 140, 240, .35);
+      box-shadow: 0 4px 14px var(--glow);
       transition: filter .15s, transform .15s;
     }
     .chat-ctas { display: flex; flex-direction: column; gap: 7px; margin: 12px 16px; }
@@ -456,7 +457,7 @@
       position: absolute; left: 0; top: 0;
       width: 44px; height: 44px; margin: -22px 0 0 -22px;
       border-radius: 50%;
-      border: 2px solid #b6a6f6;
+      border: 2px solid var(--ring);
       animation: fx-ring .5s ease-out forwards;
     }
     @keyframes fx-ring {
@@ -483,7 +484,7 @@
     .d-body .t-media .media { height: auto; }
     .d-body .t-media .media.ph { aspect-ratio: var(--ratio); height: 100%; }
     .kk-wrap { margin: 14px 0 0; border-top: 1px solid var(--line); }
-    .couple-card { display: flex; align-items: center; gap: 10px; margin: 12px 16px 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(90deg, #faf8ff, #fff); }
+    .couple-card { display: flex; align-items: center; gap: 10px; margin: 12px 16px 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(90deg, var(--tint), #fff); }
     .couple-card .avs { display: flex; flex-shrink: 0; }
     .couple-card .avs .t-ava { width: 34px; height: 34px; font-size: .8rem; border: 2px solid #fff; }
     .couple-card .avs .t-ava + .t-ava { margin-left: -10px; }
@@ -575,6 +576,8 @@
     const couples = SITE.couples || [];
     const characters = (SITE.posts || []).filter(c => !c.hidden);   // 🙈 비공개 기록은 숨겨요
     Object.entries(SITE.profile || {}).forEach(([k, v]) => { if (v !== undefined && v !== null) profile[k] = v; });
+    // 🎨 메인 색 (제작자 페이지 > 프로필에서 골라요)
+    const PAL = KK.applyPalette(profile.color || "lavender");
 
     const stickers = {
       smile: "images/sticker-smile.png",
@@ -654,7 +657,7 @@
     const miniAva = (name, img) => `<div class="t-ava" style="background:#bfcfe0;color:#fff">${img ? `<img src="${esc(img)}" alt="" />` : esc((name || "?").charAt(0))}</div>`;
     const mediaHTML = c => c.image
       ? `<img class="media" src="${esc(c.image)}" alt="${esc(coupleOf(c).name)}" loading="lazy" decoding="async" />`
-      : `<div class="media ph" style="background:linear-gradient(150deg, #c9b8fa, #9ad8f6)">💞</div>`;
+      : `<div class="media ph" style="background:var(--grad-strong)">💞</div>`;
     const headHTML = d => `
       <div class="t-head"><b>${esc(profile.name)}</b>${I.verified}<span class="muted">@${esc(profile.handle)} · ${shortDate(d)}</span></div>`;
 
@@ -854,7 +857,7 @@
       const layer = document.createElement("div");
       layer.className = "fx-layer";
       document.body.appendChild(layer);
-      const colors = ["url(#hg)", "#c9b8fa", "#a9c9f8", "#93d5f6", "#b39cf5"];
+      const colors = ["url(#hg)", ...PAL.hg, PAL.vars["--ring"]];
       const heartPath = "M12 21.2s-8.6-5.2-10.4-10.6C.3 6.6 2.8 2.8 6.7 2.8c2.3 0 4.1 1.2 5.3 3.1 1.2-1.9 3-3.1 5.3-3.1 3.9 0 6.4 3.8 5.1 7.8C20.6 16 12 21.2 12 21.2z";
       const rand = (a, b) => a + Math.random() * (b - a);
       function spawn(cls, x, y, size, vars, life) {
