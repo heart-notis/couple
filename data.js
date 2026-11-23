@@ -1,13 +1,15 @@
 /* 이 파일은 제작자 페이지(admin.html)가 자동으로 만들어요. 직접 고치지 않아도 돼요. */
 window.SITE_DATA = {
   "profile": {
-    "bio": "💞 우리 애들 연애 기록장\n사진이랑 그날의 대화를 모아두는 곳이에요. (ㅅ•᎑•*)♥",
+    "bio": "내가 사랑하는 활자의 기록. (ㅅ•᎑•*)♥",
     "avatar": "images/profile-mwsn91hc.webp",
     "avatarSmall": "images/profile-sm-mwsn91hc.webp",
     "avatarPosition": "center",
     "banner": "images/header-mwsn91hc.webp",
     "bannerPosition": "center",
-    "color": "rose"
+    "color": "rose",
+    "link": "",
+    "linkLabel": ""
   },
   "couples": [
     {
