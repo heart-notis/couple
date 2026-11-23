@@ -428,7 +428,7 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="chat.js"></script>
+  <script>document.write('<script src="chat.js?v=' + Date.now() + '"><\/script>');</script>
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
   <script>
     /* =====================================================
@@ -1124,7 +1124,7 @@
       $("pf_link").value = f.link || "";
       $("pf_linkLabel").value = f.linkLabel || "";
       $("avaRecrop").classList.toggle("hidden", !f.avatar);
-      renderPalette();
+      if (KK.PALETTES) renderPalette(); else $("pf_color").innerHTML = `<div class="hint">색 목록을 못 불러왔어요. 새로고침해주세요.</div>`;
       $("banRecrop").classList.toggle("hidden", !f.banner);
     }
     // 🎨 메인 색 고르기
