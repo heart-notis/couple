@@ -349,7 +349,7 @@
             <div class="img-side">
               <div style="font-weight:700;font-size:.82rem;color:#3d4650">프로필 사진</div>
               <div class="btn-row">
-                <label class="btn btn-line btn-sm file-btn">사진 바꾸기<input type="file" accept="image/*" id="avaFile" /></label>
+                <label class="btn btn-line btn-sm file-btn">사진 바꾸기<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" id="avaFile" /></label>
                 <button class="btn btn-ghost btn-sm" id="avaRecrop">✂️ 다시 자르기</button>
               </div>
               <div class="tiny">정사각형으로 잘려요 · 🔒 사진 정보(EXIF) 자동 삭제</div>
@@ -359,7 +359,7 @@
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
               <div style="font-weight:700;font-size:.82rem;color:#3d4650;white-space:nowrap">헤더 사진</div>
               <div class="btn-row">
-                <label class="btn btn-line btn-sm file-btn">사진 바꾸기<input type="file" accept="image/*" id="banFile" /></label>
+                <label class="btn btn-line btn-sm file-btn">사진 바꾸기<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" id="banFile" /></label>
                 <button class="btn btn-ghost btn-sm" id="banRecrop">✂️ 다시 자르기</button>
               </div>
             </div>
@@ -634,6 +634,7 @@
     }
     $("overlay").addEventListener("click", e => { if (e.target.id === "overlay") requestClose(); });
 
+    // 📱 사진 버튼: accept 를 "image/*" 대신 형식을 하나하나 적으면 안드로이드에서 갤러리 앱을 고를 수 있는 창이 떠요
     // 사진인지 확인 (폰에서 갤러리 앱으로 고를 수 있게 accept 를 안 걸어서 직접 확인해요)
     const isImgFile = f => f && (/^image\//.test(f.type) || /\.(jpe?g|png|webp|gif|bmp|avif|heic|heif)$/i.test(f.name || ""));
     /* ---------- 💞 커플 ---------- */
@@ -679,7 +680,7 @@
             <input type="text" id="c_${k}" placeholder="이름 (대화에 쓰는 이름 그대로)" style="flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:10px;outline:none" />
           </div>
           <div class="btn-row">
-            <label class="btn btn-line btn-sm file-btn">프사 고르기<input type="file" accept="image/*" id="c_${k}File" /></label>
+            <label class="btn btn-line btn-sm file-btn">프사 고르기<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" id="c_${k}File" /></label>
             <button type="button" class="btn btn-ghost btn-sm hidden" id="c_${k}Del">빼기</button>
           </div>
         </div>`;
@@ -691,7 +692,7 @@
             <div class="img-side">
               <div style="font-weight:700;font-size:.82rem;color:#3d4650">커플 프사 <small style="font-weight:400;color:var(--sub)">이 커플 기록에 하트 프사 대신 떠요</small></div>
               <div class="btn-row">
-                <label class="btn btn-line btn-sm file-btn">사진 고르기<input type="file" accept="image/*" id="c_avaFile" /></label>
+                <label class="btn btn-line btn-sm file-btn">사진 고르기<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" id="c_avaFile" /></label>
                 <button type="button" class="btn btn-ghost btn-sm hidden" id="c_avaDel">빼기</button>
               </div>
             </div>
@@ -801,7 +802,7 @@
             <div class="img-prev" id="imgPrev">${item.image ? `<img src="${esc(item.image)}" alt="" />` : "사진<br/>없음"}</div>
             <div class="img-side">
               <div class="btn-row" id="imgBtns" style="flex-wrap:wrap">
-                <label class="btn btn-line btn-sm file-btn">${item.image ? "사진 바꾸기" : "사진 고르기"}<input type="file" accept="image/*" id="imgFile" ${index < 0 ? "multiple" : ""} /></label>
+                <label class="btn btn-line btn-sm file-btn">${item.image ? "사진 바꾸기" : "사진 고르기"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" id="imgFile" ${index < 0 ? "multiple" : ""} /></label>
                 <label class="btn btn-ghost btn-sm file-btn" title="파일 → 왼쪽 위 ☰ → 갤러리">📁 다른 앱<input type="file" id="imgFile2" ${index < 0 ? "multiple" : ""} /></label>
                 ${item.image ? `<button class="btn btn-ghost btn-sm" id="imgRecrop">✂️ 다시 자르기</button>` : ""}
               </div>
