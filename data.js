@@ -40,7 +40,8 @@ window.SITE_DATA = {
       "previewX": 50,
       "previewZoom": 1,
       "style": "kakao",
-      "adult": false
+      "adult": false,
+      "pinned": true
     }
   ]
 };
