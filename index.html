@@ -616,7 +616,7 @@
 
     /* ---- 💞 커플 ---- */
     const coupleOf = c => couples.find(x => x.id === c.couple) || { name: "(커플 없음)", left: "", right: "" };
-    const ddOf = c => { const cp = coupleOf(c); return KK.dLabel(KK.dPlus(cp.start, c.date)); };
+    const ddOf = c => { const cp = coupleOf(c); return KK.dLabel(KK.dPlus(cp.start, c.ddFix ? c.date : undefined)); };
     const titleHTML = c => { const cp = coupleOf(c), dd = ddOf(c); return `${escH(cp.name)}${dd ? `<span class="bar">|</span><span class="dd">${esc(dd)}</span>` : ""}${c.title ? ` <span style="font-weight:700">${escH(c.title)}</span>` : ""}`; };
     const chatFirst = c => (KK.parse(c.chat, coupleOf(c)).find(m => m.t === "msg") || null);
     const chatCount = c => KK.parse(c.chat, coupleOf(c)).filter(m => m.t === "msg").length;
@@ -692,9 +692,10 @@
     function charTweet(c, i) {
       const f = chatFirst(c), n = chatCount(c);
       return `
-        <article class="tweet" data-open="${i}">
+        <article class="tweet${c.pinned ? " pinned" : ""}" data-open="${i}">
           ${postAva(c)}
           <div class="t-main">
+            ${c.pinned ? `<div class="t-context pin-label">${I.pin}고정된 기록</div>` : ""}
             ${headHTML(c.date)}
             <p class="t-title">${titleHTML(c)}</p>
             ${c.tagline ? `<p class="t-tagline">${fmtText(c.tagline)}</p>` : ""}
@@ -732,7 +733,8 @@
       const used = couples.filter(cp => characters.some(c => c.couple === cp.id));
       const chips = used.length > 1 ? `<div class="chips-wrap"><div class="edge left"><button data-scroll="-1" aria-label="왼쪽">${I.chevL}</button></div><div class="chips" id="chips">${[{ id: "전체", name: "전체" }, ...used].map(cp => `<button class="chip ${cp.id === activeTag ? "active" : ""}" data-tag="${esc(cp.id)}">${cp.id === "전체" ? "전체" : "💞 " + esc(cp.name)}</button>`).join("")}</div><div class="edge right"><button data-scroll="1" aria-label="오른쪽">${I.chevR}</button></div></div>` : "";
       const prevScroll = $("chips")?.scrollLeft || 0;
-      const list = characters.map((c, i) => ({ c, i })).filter(({ c }) => activeTag === "전체" || c.couple === activeTag);
+      const list = characters.map((c, i) => ({ c, i })).filter(({ c }) => activeTag === "전체" || c.couple === activeTag)
+        .sort((a, b) => (b.c.pinned ? 1 : 0) - (a.c.pinned ? 1 : 0));   // 📌 고정한 기록은 맨 위로
       const cur = couples.find(cp => cp.id === activeTag);
       el.innerHTML = chips + (cur ? coupleCard(cur) + `<div style="height:12px;border-bottom:1px solid var(--line)"></div>` : "") + (list.length ? list.map(({ c, i }) => charTweet(c, i)).join("")
         : `<p class="empty">${characters.length ? "이 커플의 기록이 없어요" : "아직 기록이 없어요"}</p>`);

@@ -42,14 +42,16 @@
     const L = (couple.left || "").trim(), R = (couple.right || "").trim();
     const sideOf = n => (n === R || n === "나") ? "R" : "L";
     const out = []; let cur = null, lastYmd = "";
-    const msg = (name, time, text) => { name = name.trim(); cur = { t: "msg", name, side: sideOf(name), time: niceTime(time), text }; out.push(cur); };
+    let li = -1;
+    const msg = (name, time, text) => { name = name.trim(); cur = { t: "msg", name, side: sideOf(name), time: niceTime(time), text, ln: [li, li] }; out.push(cur); };
     for (const line of String(raw || "").replace(/\r/g, "").split("\n")) {
+      li++;
       const t = line.trim();
       if (!t) { cur = null; continue; }
       if (SKIP.test(t)) continue;
       let m;
-      if ((m = RE_DATE.exec(t))) { const md = RE_MO_DATE.exec(m[1]); out.push({ t: "date", text: md ? dateText(md[1], md[2], md[3]) : m[1] }); cur = null; continue; }
-      if ((m = RE_MO_DATE.exec(t))) { lastYmd = `${m[1]}-${+m[2]}-${+m[3]}`; out.push({ t: "date", text: dateText(m[1], m[2], m[3]) }); cur = null; continue; }
+      if ((m = RE_DATE.exec(t))) { const md = RE_MO_DATE.exec(m[1]); out.push({ t: "date", text: md ? dateText(md[1], md[2], md[3]) : m[1], ln: [li, li] }); cur = null; continue; }
+      if ((m = RE_MO_DATE.exec(t))) { lastYmd = `${m[1]}-${+m[2]}-${+m[3]}`; out.push({ t: "date", text: dateText(m[1], m[2], m[3]), ln: [li, li] }); cur = null; continue; }
       if ((m = RE_PC.exec(t))) { msg(m[1], m[2], m[3]); continue; }
       if ((m = RE_MO.exec(t))) {
         const ymd = `${m[1]}-${+m[2]}-${+m[3]}`;
@@ -58,8 +60,8 @@
       }
       // "이름: 대사" — 시간이 붙었거나, 커플 이름이거나, 위에 이어 붙을 말풍선이 없으면 새 말풍선
       if (!/^\*/.test(t) && (m = RE_SIMPLE.exec(t)) && (m[1] || !cur || [L, R, "나"].includes(m[2].trim()))) { msg(m[2], m[1] || "", m[3]); continue; }
-      if (cur) { cur.text += "\n" + t; continue; }          // 바로 위 말풍선에 이어 붙이기
-      out.push({ t: "narr", text: t });
+      if (cur) { cur.text += "\n" + t; cur.ln[1] = li; continue; }          // 바로 위 말풍선에 이어 붙이기
+      out.push({ t: "narr", text: t, ln: [li, li] });
     }
     return out;
   }
@@ -126,11 +128,19 @@
 
   /* ---------- 대화창 모양 ----------
      ava: 프사 위치(top 위 · bottom 아래 · none 없음) / time: side 말풍선 옆 · center 가운데 / bg: 커플 배경색을 쓸지 */
+  // sw: 고르기 견본 [배경, 왼쪽, 오른쪽] / both: 양쪽 다 왼쪽 정렬 + 이름 · 프사 / time: side · center · inside(말풍선 안) · head(이름 옆)
   const STYLES = {
-    kakao:    { label: "카카오톡",   ava: "top",    name: true,  time: "side",   bg: true },
-    imessage: { label: "아이메시지", ava: "none",   name: false, time: "center", bg: false },
-    insta:    { label: "인스타 DM",  ava: "bottom", name: false, time: "center", bg: false },
-    line:     { label: "라인",       ava: "top",    name: true,  time: "side",   bg: true }
+    kakao:        { label: "카카오톡",        ava: "top",    name: true,  time: "side",   bg: true, defBg: "#bacee0", sw: ["#bacee0", "#fff", "#fee500"] },
+    kakaodark:    { label: "카톡 다크",       ava: "top",    name: true,  time: "side",   sw: ["#1f2226", "#3a3d42", "#fee500"] },
+    imessage:     { label: "아이메시지",      ava: "none",   name: false, time: "center", read: true, sw: ["#fff", "#e9e9eb", "#0a84ff"] },
+    imessagedark: { label: "아이메시지 다크", ava: "none",   name: false, time: "center", read: true, sw: ["#000", "#262628", "#0a84ff"] },
+    insta:        { label: "인스타 DM",       ava: "bottom", name: false, time: "center", read: true, sw: ["#fff", "#efefef", "linear-gradient(135deg,#a033ff,#3797f0)"] },
+    line:         { label: "라인",            ava: "top",    name: true,  time: "side",   bg: true, defBg: "#8cabd9", sideRead: true, sw: ["#8cabd9", "#fff", "#8de055"] },
+    telegram:     { label: "텔레그램",        ava: "bottom", name: false, time: "inside", bg: true, defBg: "#c8dbb3", sw: ["#c8dbb3", "#fff", "#e1fec6"] },
+    lovely:       { label: "러블리",          ava: "top",    name: true,  time: "side",   bg: true, defBg: "#ffe3ec", sw: ["#ffe3ec", "#fff", "linear-gradient(135deg,#ff8fb1,#ffb3c6)"] },
+    discord:      { label: "디스코드",        ava: "top",    name: true,  time: "head",   both: true, sw: ["#313338", "#4e5058", "#5865f2"] },
+    diary:        { label: "다이어리",        ava: "none",   name: true,  time: "head",   both: true, sw: ["repeating-linear-gradient(#fbf6ea 0 9px,#e8dcc4 9px 10px)", "#7a9cc6", "#d9849b"] },
+    retro:        { label: "옛날 메신저",     ava: "none",   name: true,  time: "head",   both: true, sw: ["linear-gradient(#2a5bd7 0 30%,#ece9d8 30%)", "#2457c5", "#c0392b"] }
   };
   const styleOf = k => STYLES[k] ? k : "kakao";
 
@@ -142,43 +152,72 @@
       : `<div class="${cls} kk-ini">${esc((name || "?").charAt(0))}</div>`;
   }
   function render(items, couple = {}, style = "kakao") {
-    const S = STYLES[styleOf(style)];
+    style = styleOf(style);
+    const S = STYLES[style];
     if (!items.length) return `<div class="kk-empty">아직 대화가 없어요</div>`;
     const same = (a, b) => a && b && a.t === "msg" && b.t === "msg" && a.name === b.name && a.time === b.time;
     let shown = "";
     const lastR = (() => { for (let i = items.length - 1; i >= 0; i--) if (items[i].t === "msg") return items[i].side === "R" ? i : -1; return -1; })();
     return items.map((m, i) => {
-      if (m.t === "date") { shown = ""; return `<div class="kk-date"><span>${esc(m.text)}</span></div>`; }
-      if (m.t === "narr") return `<div class="kk-narr">${fmt(m.text.replace(/^\*(.*)\*$/, "$1"))}</div>`;
-      const first = !same(items[i - 1], m), last = !same(m, items[i + 1]);
+      const k = m.ln ? ` data-k="${i}"` : "";
+      if (m.t === "date") { shown = ""; return `<div class="kk-date"${k}><span>${esc(m.text)}</span></div>`; }
+      if (m.t === "narr") return `<div class="kk-narr"${k}>${fmt(m.text.replace(/^\*(.*)\*$/, "$1"))}</div>`;
+      const first = !same(items[i - 1], m), last = !same(m, items[i + 1]), mine = m.side === "R";
       let pre = "";
       if (S.time === "center" && m.time && m.time !== shown) { shown = m.time; pre = `<div class="kk-ctime">${esc(m.time)}</div>`; }
-      const bub = PHOTO.test(m.text.trim()) ? `<div class="kk-bub kk-media">${/동영상/.test(m.text) ? "🎬" : /이모티콘/.test(m.text) ? "😊" : "📷"} ${esc(m.text)}</div>` : `<div class="kk-bub">${fmt(m.text)}</div>`;
-      const showAva = S.ava === "top" ? first : S.ava === "bottom" ? last : false;
-      const ava = m.side === "L" && S.ava !== "none" ? (showAva ? avatar(m.name, couple) : `<div class="kk-ava kk-gap"></div>`) : "";
-      return `${pre}<div class="kk-row ${m.side}${first ? " first" : ""}${last ? " last" : ""}">
+      const itime = S.time === "inside" && m.time ? `<span class="kk-itime">${esc(m.time)}${mine ? " ✓✓" : ""}</span>` : "";
+      const bub = PHOTO.test(m.text.trim())
+        ? `<div class="kk-bub kk-media">${/동영상/.test(m.text) ? "🎬" : /이모티콘/.test(m.text) ? "😊" : "📷"} ${esc(m.text)}${itime}</div>`
+        : `<div class="kk-bub">${fmt(m.text)}${itime}</div>`;
+      const withAva = S.ava !== "none" && (S.both || !mine);
+      const showAva = S.ava === "top" ? first : last;
+      const ava = withAva ? (showAva ? avatar(m.name, couple) : `<div class="kk-ava kk-gap"></div>`) : "";
+      const htime = S.time === "head" && m.time ? `<span class="kk-htime">${esc(m.time)}</span>` : "";
+      const nameLine = S.name && first && (S.both || !mine) ? `<div class="kk-name"><span class="kn">${esc(m.name)}</span>${htime}</div>` : "";
+      const stime = S.time === "side" && last && m.time ? `<span class="kk-time">${mine && S.sideRead ? "읽음<br/>" : ""}${esc(m.time)}</span>` : "";
+      return `${pre}<div class="kk-row ${m.side}${first ? " first" : ""}${last ? " last" : ""}"${k}>
         ${ava}
         <div class="kk-body">
-          ${m.side === "L" && first && S.name ? `<div class="kk-name">${esc(m.name)}</div>` : ""}
-          <div class="kk-line">${bub}${S.time === "side" && last && m.time ? `<span class="kk-time">${m.side === "R" && style === "line" ? "읽음<br/>" : ""}${esc(m.time)}</span>` : ""}</div>
-          ${i === lastR && style === "imessage" ? `<div class="kk-read">읽음</div>` : ""}
-          ${i === lastR && style === "insta" ? `<div class="kk-read">읽음</div>` : ""}
+          ${nameLine}
+          <div class="kk-line">${bub}${stime}</div>
+          ${i === lastR && S.read ? `<div class="kk-read">읽음</div>` : ""}
         </div>
       </div>`;
     }).join("");
   }
   // 대화창 위쪽 이름 줄
   function head(couple, style, opt = {}) {
-    const L = couple.left || "상대", dd = opt.dd ? `<span class="kh-dd">${esc(opt.dd)}</span>` : "";
-    if (style === "imessage") return `<div class="kk-head">${avatar(L, couple, "kh-ava")}<div class="kh-name">${esc(L)} ›</div>${dd}</div>`;
-    if (style === "insta") return `<div class="kk-head">${avatar(L, couple, "kh-ava")}<div class="kh-main"><div class="kh-name">${esc(L)}</div><div class="kh-sub">${esc(couple.name || "")}</div></div>${dd}</div>`;
-    return `<div class="kk-head"><span class="kh-name">${esc(L)}${couple.right ? `, ${esc(couple.right)}` : ""}</span>${opt.count != null ? `<small>${opt.count}</small>` : ""}${dd}</div>`;
+    const L = couple.left || "상대", R = couple.right || "나", dd = opt.dd ? `<span class="kh-dd">${esc(opt.dd)}</span>` : "";
+    const ava = avatar(L, couple, "kh-ava");
+    switch (style) {
+      case "imessage": case "imessagedark":
+        return `<div class="kk-head">${ava}<div class="kh-name">${esc(L)} ›</div>${dd}</div>`;
+      case "insta": case "telegram":
+        return `<div class="kk-head">${ava}<div class="kh-main"><div class="kh-name">${esc(L)}</div><div class="kh-sub">${style === "telegram" ? "온라인" : esc(couple.name || "")}</div></div>${dd}</div>`;
+      case "discord":
+        return `<div class="kk-head"><b class="kh-hash">#</b><span class="kh-name">${esc(L)}-${esc(R)}</span>${dd}</div>`;
+      case "diary":
+        return `<div class="kk-head"><span class="kh-name">♡ ${esc(R)} &amp; ${esc(L)}의 일기장</span>${dd}</div>`;
+      case "retro":
+        return `<div class="kk-head"><span class="kh-name">💬 ${esc(L)} - 대화</span>${dd}<span class="kh-btns"><i>_</i><i>□</i><i>×</i></span></div>`;
+      case "lovely":
+        return `<div class="kk-head"><span class="kh-name">${esc(L)} <span class="kh-heart">♥</span> ${esc(R)}</span>${dd}</div>`;
+    }
+    return `<div class="kk-head"><span class="kh-name">${esc(L)}, ${esc(R)}</span>${opt.count != null ? `<small>${opt.count}</small>` : ""}${dd}</div>`;
   }
   // opt: { style, dd, head: true면 이름 줄도 }
   function room(raw, couple = {}, opt = {}) {
     const st = styleOf(opt.style || couple.style), items = parse(raw, couple);
-    const bg = STYLES[st].bg ? `--kk-bg:${esc(couple.bg || (st === "line" ? "#8cabd9" : "#bacee0"))}` : "";
-    return `<div class="kk-room st-${st}" style="${bg}">${opt.head ? head(couple, st, { dd: opt.dd, count: items.filter(m => m.t === "msg").length }) : ""}<div class="kk">${render(items, couple, st)}</div></div>`;
+    const S = STYLES[st], bg = S.bg ? `--kk-bg:${esc(st === "kakao" ? couple.bg || S.defBg : S.defBg)}` : "";
+    if (st === "diary") loadFont();
+    return `<div class="kk-room st-${st}${S.both ? " flat" : ""}" style="${bg}">${opt.head ? head(couple, st, { dd: opt.dd, count: items.filter(m => m.t === "msg").length }) : ""}<div class="kk">${render(items, couple, st)}</div></div>`;
+  }
+
+  // 다이어리 글씨체 (쓸 때만 불러와요)
+  function loadFont() {
+    if (document.getElementById("kk-font")) return;
+    const l = document.createElement("link"); l.id = "kk-font"; l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap"; document.head.appendChild(l);
   }
 
   /* ---------- 모양 ---------- */
@@ -215,28 +254,28 @@
 
     /* 카카오톡 */
     .st-kakao .kk-head { background: var(--kk-bg, #bacee0); filter: brightness(.96); }
-    .st-kakao .first.L .kk-bub { border-top-left-radius: 4px; }
-    .st-kakao .first.R .kk-bub { border-top-right-radius: 4px; }
-    .st-kakao .first .kk-bub::before { content: ""; position: absolute; top: 0; width: 0; height: 0; border-bottom: 9px solid transparent; }
-    .st-kakao .first.L .kk-bub::before { left: -6px; border-right: 8px solid #fff; }
-    .st-kakao .first.R .kk-bub::before { right: -6px; border-left: 8px solid #fee500; }
+    :is(.st-kakao, .st-kakaodark) .first.L .kk-bub { border-top-left-radius: 4px; }
+    :is(.st-kakao, .st-kakaodark) .first.R .kk-bub { border-top-right-radius: 4px; }
+    :is(.st-kakao, .st-kakaodark) .first .kk-bub::before { content: ""; position: absolute; top: 0; width: 0; height: 0; border-bottom: 9px solid transparent; }
+    :is(.st-kakao, .st-kakaodark) .first.L .kk-bub::before { left: -6px; border-right: 8px solid var(--kl, #fff); }
+    :is(.st-kakao, .st-kakaodark) .first.R .kk-bub::before { right: -6px; border-left: 8px solid #fee500; }
 
     /* 아이메시지 */
-    .st-imessage .kk { background: #fff; padding: 8px 12px 18px; }
-    .st-imessage .kk-head { flex-direction: column; gap: 3px; padding: 12px 16px 8px; background: #f6f6f8; border-bottom: 1px solid #e5e5ea; font-weight: 500; position: relative; }
-    .st-imessage .kh-ava { width: 46px; height: 46px; font-size: 1rem; background: linear-gradient(180deg, #a5abb7, #858b97); }
-    .st-imessage .kh-name { font-size: .72rem; color: #1c1c1e; }
-    .st-imessage .kh-dd { position: absolute; right: 12px; top: 12px; background: #e9e9eb; color: #3a3a3c; }
-    .st-imessage .kk-date span { background: none; color: #8e8e93; padding: 0; font-size: .7rem; }
-    .st-imessage .kk-narr { background: none; color: #8e8e93; font-size: .76rem; }
-    .st-imessage .kk-row { margin-top: 2px; }
-    .st-imessage .kk-row.first { margin-top: 8px; }
-    .st-imessage .kk-body { max-width: 76%; }
-    .st-imessage .kk-bub { background: #e9e9eb; color: #000; border-radius: 18px; padding: 7px 12px; font-size: .92rem; }
-    .st-imessage .R .kk-bub { background: #0a84ff; color: #fff; }
-    .st-imessage .last.L .kk-bub { border-bottom-left-radius: 5px; }
-    .st-imessage .last.R .kk-bub { border-bottom-right-radius: 5px; }
-    .st-imessage .kk-read { align-self: flex-end; }
+    :is(.st-imessage, .st-imessagedark) .kk, .st-imessagedark .kk { background: #fff; padding: 8px 12px 18px; }
+    :is(.st-imessage, .st-imessagedark) .kk-head { flex-direction: column; gap: 3px; padding: 12px 16px 8px; background: #f6f6f8; border-bottom: 1px solid #e5e5ea; font-weight: 500; position: relative; }
+    :is(.st-imessage, .st-imessagedark) .kh-ava { width: 46px; height: 46px; font-size: 1rem; background: linear-gradient(180deg, #a5abb7, #858b97); }
+    :is(.st-imessage, .st-imessagedark) .kh-name { font-size: .72rem; color: #1c1c1e; }
+    :is(.st-imessage, .st-imessagedark) .kh-dd { position: absolute; right: 12px; top: 12px; background: #e9e9eb; color: #3a3a3c; }
+    :is(.st-imessage, .st-imessagedark) .kk-date span { background: none; color: #8e8e93; padding: 0; font-size: .7rem; }
+    :is(.st-imessage, .st-imessagedark) .kk-narr { background: none; color: #8e8e93; font-size: .76rem; }
+    :is(.st-imessage, .st-imessagedark) .kk-row { margin-top: 2px; }
+    :is(.st-imessage, .st-imessagedark) .kk-row.first { margin-top: 8px; }
+    :is(.st-imessage, .st-imessagedark) .kk-body { max-width: 76%; }
+    :is(.st-imessage, .st-imessagedark) .kk-bub { background: #e9e9eb; color: #000; border-radius: 18px; padding: 7px 12px; font-size: .92rem; }
+    :is(.st-imessage, .st-imessagedark) .R .kk-bub { background: #0a84ff; color: #fff; }
+    :is(.st-imessage, .st-imessagedark) .last.L .kk-bub { border-bottom-left-radius: 5px; }
+    :is(.st-imessage, .st-imessagedark) .last.R .kk-bub { border-bottom-right-radius: 5px; }
+    :is(.st-imessage, .st-imessagedark) .kk-read { align-self: flex-end; }
 
     /* 인스타 DM */
     .st-insta .kk { background: #fff; padding: 8px 12px 18px; }
@@ -272,7 +311,126 @@
     .st-line .first.L .kk-bub::before, .st-line .first.R .kk-bub::before { content: ""; position: absolute; top: 4px; width: 10px; height: 10px; }
     .st-line .first.L .kk-bub::before { left: -5px; background: #fff; clip-path: polygon(100% 0, 0 0, 100% 100%); border-radius: 0 0 0 3px; }
     .st-line .first.R .kk-bub::before { right: -5px; background: #8de055; clip-path: polygon(0 0, 100% 0, 0 100%); }
-    .st-line .kk-time { color: rgba(255,255,255,.9); }`;
+    .st-line .kk-time { color: rgba(255,255,255,.9); }
+
+    /* 공통: 이름 옆 시간 · 말풍선 안 시간 · 양쪽 왼쪽 정렬 */
+    .kk-htime { margin-left: 7px; font-size: .68rem; font-weight: 500; opacity: .7; }
+    .kk-itime { float: right; margin: 7px -2px -3px 9px; font-size: .62rem; line-height: 1; opacity: .7; white-space: nowrap; }
+    .flat .kk-row.R { justify-content: flex-start; }
+    .flat .R .kk-body { align-items: flex-start; }
+    .flat .R .kk-line { flex-direction: row; }
+    .flat .kk-body { max-width: 100%; flex: 1; }
+
+    /* 카톡 다크 */
+    .st-kakaodark { --kl: #3a3d42; }
+    .st-kakaodark .kk { background: #1f2226; }
+    .st-kakaodark .kk-head { background: #181a1d; color: #f1f1f1; }
+    .st-kakaodark .kk-head small { color: #8a8f96; }
+    .st-kakaodark .kh-dd { background: rgba(255,255,255,.12); color: #fff; }
+    .st-kakaodark .kk-bub { background: #3a3d42; color: #f1f1f1; }
+    .st-kakaodark .R .kk-bub { background: #fee500; color: #191919; }
+    .st-kakaodark .kk-name { color: #b0b4ba; }
+    .st-kakaodark .kk-time { color: #8a8f96; }
+    .st-kakaodark .kk-date span { background: rgba(255,255,255,.1); color: #c9ccd1; }
+    .st-kakaodark .kk-narr { background: rgba(255,255,255,.07); color: #b0b4ba; }
+    .st-kakaodark .kk-ava { background: #4a4f57; }
+
+    /* 아이메시지 다크 */
+    .st-imessagedark .kk { background: #000; }
+    .st-imessagedark .kk-head { background: #1c1c1e; border-bottom-color: #2c2c2e; }
+    .st-imessagedark .kh-name { color: #f2f2f7; }
+    .st-imessagedark .kh-dd { background: #2c2c2e; color: #f2f2f7; }
+    .st-imessagedark .kk-bub { background: #262628; color: #fff; }
+
+    /* 텔레그램 */
+    .st-telegram .kk { background-color: var(--kk-bg); background-image: radial-gradient(rgba(255,255,255,.22) 1.5px, transparent 1.6px); background-size: 18px 18px; }
+    .st-telegram .kk-head { background: #fff; border-bottom: 1px solid #e6e6e6; padding: 9px 14px; }
+    .st-telegram .kh-ava { width: 36px; height: 36px; background: linear-gradient(135deg, #6fc2f0, #3d8fd8); }
+    .st-telegram .kh-name { font-size: .9rem; color: #000; }
+    .st-telegram .kh-sub { font-size: .72rem; color: #3d95d8; font-weight: 500; }
+    .st-telegram .kh-dd { background: #eef3f7; color: #3d6e95; }
+    .st-telegram .kk-date span { background: rgba(0,0,0,.22); }
+    .st-telegram .kk-row { margin-top: 3px; align-items: flex-end; }
+    .st-telegram .kk-row.first { margin-top: 9px; }
+    .st-telegram .kk-ava { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #f7a96b, #e8697a); font-size: .76rem; }
+    .st-telegram .kk-bub { border-radius: 14px; padding: 6px 10px; box-shadow: 0 1px 1px rgba(0,0,0,.12); }
+    .st-telegram .R .kk-bub { background: #e1fec6; }
+    .st-telegram .last.L .kk-bub { border-bottom-left-radius: 4px; }
+    .st-telegram .last.R .kk-bub { border-bottom-right-radius: 4px; }
+    .st-telegram .kk-itime { color: #8a9aa8; opacity: 1; }
+    .st-telegram .R .kk-itime { color: #5fb158; }
+    .st-telegram .kk-narr { background: rgba(0,0,0,.18); color: #fff; }
+
+    /* 러블리 */
+    .st-lovely .kk { background-color: var(--kk-bg); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath fill='%23ffffff' opacity='.55' d='M15 22s-6-3.6-7.2-7.3C7 12 8.7 9.4 11.4 9.4c1.5 0 2.7.8 3.6 2 .8-1.2 2-2 3.5-2 2.7 0 4.4 2.6 3.6 5.3C20.9 18.4 15 22 15 22z'/%3E%3Cpath fill='%23ffffff' opacity='.35' transform='translate(30 30) scale(.6)' d='M15 22s-6-3.6-7.2-7.3C7 12 8.7 9.4 11.4 9.4c1.5 0 2.7.8 3.6 2 .8-1.2 2-2 3.5-2 2.7 0 4.4 2.6 3.6 5.3C20.9 18.4 15 22 15 22z'/%3E%3C/svg%3E"); }
+    .st-lovely .kk-head { justify-content: center; background: #fff; color: #d0628a; border-bottom: 2px dashed #ffc2d4; position: relative; }
+    .st-lovely .kh-heart { color: #ff7aa5; }
+    .st-lovely .kh-dd { position: absolute; right: 12px; background: #ffe3ec; color: #d0628a; }
+    .st-lovely .kk-ava { border-radius: 50%; background: #ffb3c6; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #ffc2d4; }
+    .st-lovely .kk-name { color: #d0628a; font-weight: 700; }
+    .st-lovely .kk-bub { border-radius: 18px; border: 1.5px solid #ffd0de; padding: 8px 12px; }
+    .st-lovely .R .kk-bub { background: linear-gradient(135deg, #ff8fb1, #ffb3c6); color: #fff; border-color: transparent; }
+    .st-lovely .kk-time { color: #d0628a; }
+    .st-lovely .kk-date span { background: #fff; color: #d0628a; border: 1px solid #ffc2d4; }
+    .st-lovely .kk-narr { background: rgba(255,255,255,.7); color: #c0587e; }
+
+    /* 디스코드 */
+    .st-discord .kk { background: #313338; padding: 8px 14px 18px; }
+    .st-discord .kk-head { background: #2b2d31; color: #f2f3f5; border-bottom: 1px solid #1f2023; }
+    .st-discord .kh-hash { color: #80848e; font-size: 1.1rem; font-weight: 500; }
+    .st-discord .kh-dd { background: #5865f2; color: #fff; }
+    .st-discord .kk-row { margin-top: 0; gap: 14px; }
+    .st-discord .kk-row.first { margin-top: 14px; }
+    .st-discord .kk-ava { width: 40px; height: 40px; border-radius: 50%; background: #5865f2; }
+    .st-discord .R .kk-ava { background: #eb459e; }
+    .st-discord .kk-name { font-size: .9rem; margin: 0 0 2px; color: #7ee0ff; font-weight: 600; }
+    .st-discord .R .kk-name { color: #ffb3d1; }
+    .st-discord .kk-htime { color: #949ba4; opacity: 1; }
+    .st-discord .kk-bub, .st-discord .R .kk-bub { background: none; color: #dbdee1; padding: 1px 0; border-radius: 0; }
+    .st-discord .kk-date { display: flex; align-items: center; gap: 8px; }
+    .st-discord .kk-date::before, .st-discord .kk-date::after { content: ""; flex: 1; height: 1px; background: #3f4147; }
+    .st-discord .kk-date span { background: none; color: #949ba4; padding: 0; }
+    .st-discord .kk-narr { background: none; color: #949ba4; font-style: italic; }
+
+    /* 다이어리 */
+    .st-diary { font-family: "Gaegu", "Pretendard Variable", sans-serif; }
+    .st-diary .kk { background-color: #fbf6ea; background-image: linear-gradient(90deg, transparent 30px, #f3c4c4 30px 31px, transparent 31px), repeating-linear-gradient(transparent 0 27px, #e8dcc4 27px 28px); padding: 14px 16px 22px 42px; line-height: 28px; }
+    .st-diary .kk-head { background: #f6ecd6; color: #8a6a4a; font-size: 1.15rem; border-bottom: 1px dashed #d9c6a3; font-weight: 700; }
+    .st-diary .kh-dd { background: #fff6e3; color: #b07a4a; font-size: .85rem; }
+    .st-diary .kk-row, .st-diary .kk-row.first { margin-top: 0; }
+    .st-diary .kk-name { font-size: 1.05rem; font-weight: 700; color: #6d8fbd; margin: 0; line-height: 28px; }
+    .st-diary .R .kk-name { color: #cf6f8c; }
+    .st-diary .kk-htime { font-size: .8rem; color: #a08a6e; }
+    .st-diary .kk-bub, .st-diary .R .kk-bub { background: none; color: #3d3428; padding: 0; border-radius: 0; font-size: 1.12rem; line-height: 28px; }
+    .st-diary .kk-date { text-align: left; margin: 0; }
+    .st-diary .kk-date span { background: none; color: #b07a4a; padding: 0; font-size: 1rem; font-weight: 700; border-bottom: 2px solid #f3c4c4; border-radius: 0; line-height: 26px; }
+    .st-diary .kk-narr { background: none; color: #a08a6e; font-size: 1rem; margin: 0; padding: 0; text-align: center; line-height: 28px; }
+    .st-diary .kk-narr::before { content: "( "; } .st-diary .kk-narr::after { content: " )"; }
+
+    /* 옛날 메신저 */
+    .st-retro { background: #ece9d8; padding: 0 5px 5px; border: 1px solid #0a246a; font-family: "Gulim", "굴림", "Dotum", "돋움", "Pretendard Variable", sans-serif; }
+    .st-retro .kk-head { margin: 0 -5px 5px; background: linear-gradient(180deg, #3d7bf2, #0a4fd6 60%, #0842b8); color: #fff; padding: 6px 8px; font-size: .84rem; text-shadow: 1px 1px #0a246a; }
+    .st-retro .kh-dd { background: rgba(255,255,255,.2); color: #fff; text-shadow: none; }
+    .st-retro .kh-btns { display: flex; gap: 2px; margin-left: 6px; }
+    .st-retro .kh-dd + .kh-btns { margin-left: 6px; }
+    .st-retro .kh-name + .kh-btns { margin-left: auto; }
+    .st-retro .kh-btns i { width: 19px; height: 18px; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: .7rem; background: linear-gradient(#fff, #d8e4f8); color: #0a246a; border: 1px solid #fff; border-radius: 3px; text-shadow: none; }
+    .st-retro .kh-btns i:last-child { background: linear-gradient(#f0a08a, #d4462a); color: #fff; }
+    .st-retro .kk { background: #fff; border: 1px solid #7f9db9; padding: 10px 12px 16px; min-height: 140px; }
+    .st-retro .kk-row, .st-retro .kk-row.first { margin-top: 0; }
+    .st-retro .kk-row.first { margin-top: 6px; }
+    .st-retro .kk-name { font-size: .8rem; color: #2457c5; margin: 0; }
+    .st-retro .R .kk-name { color: #c0392b; }
+    .st-retro .kn::after { content: " 님의 말"; }
+    .st-retro .kk-htime { margin-left: 3px; opacity: 1; }
+    .st-retro .kk-htime::before { content: "("; } .st-retro .kk-htime::after { content: ")"; }
+    .st-retro .kk-name::after { content: ":"; }
+    .st-retro .kk-bub, .st-retro .R .kk-bub { background: none; color: #000; padding: 0 0 0 14px; border-radius: 0; font-size: .86rem; }
+    .st-retro .kk-date { text-align: left; margin: 8px 0 2px; }
+    .st-retro .kk-date span { background: none; color: #808080; padding: 0; border-radius: 0; font-weight: 400; }
+    .st-retro .kk-date span::before { content: "─── "; } .st-retro .kk-date span::after { content: " ───"; }
+    .st-retro .kk-narr { background: none; text-align: left; color: #008000; margin: 4px 0; padding: 0; font-size: .8rem; }
+    .st-retro .kk-narr::before { content: "* "; }`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
   window.KK = { parse, render, room, head, dPlus, dLabel, fmt, esc, STYLES, PALETTES, palette, applyPalette };

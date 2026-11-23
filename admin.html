@@ -264,7 +264,31 @@
     .chat-tools button { padding: 5px 11px; border-radius: 999px; font-size: .76rem; font-weight: 700; background: #eef1f4; color: #3d4650; }
     .chat-tools button.L { background: #fff; border: 1px solid var(--line); }
     .chat-tools button.R { background: #fee500; }
-    #f_chat { min-height: 220px; font-size: .88rem; line-height: 1.6; }
+    #f_chat { min-height: 200px; font-size: .86rem; line-height: 1.6; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; outline: none; font-weight: 400; resize: vertical; margin-top: 8px; }
+    .composer { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 14px; background: #f6f7f9; border: 1px solid var(--line); }
+    .cmp-who { display: flex; flex-wrap: wrap; gap: 6px; }
+    .cmp-who button { padding: 6px 12px; border-radius: 999px; font-size: .8rem; font-weight: 700; background: #fff; border: 1.5px solid var(--line); color: #4a4f57; }
+    .cmp-who button.R { background: #fffbe0; }
+    .cmp-who button.on { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px var(--soft); }
+    .cmp-who button.R.on { background: #fee500; color: #191919; border-color: #e6cf00; box-shadow: 0 0 0 3px #fff6b3; }
+    .cmp-opt { display: flex; align-items: center; gap: 8px; font-size: .8rem; }
+    .cmp-opt .check { font-size: .8rem; }
+    .cmp-opt input[type=time] { padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: .82rem; }
+    .cmp-opt button { font-size: .76rem; font-weight: 700; color: var(--accent); padding: 4px 8px; border-radius: 8px; background: var(--soft); }
+    .cmp-bar { display: flex; gap: 6px; align-items: flex-end; }
+    .cmp-bar textarea { flex: 1; min-width: 0; min-height: 40px; resize: none; padding: 9px 12px; border: 1px solid var(--line); border-radius: 18px; outline: none; font-size: .92rem; line-height: 1.4; background: #fff; max-height: 140px; }
+    .cmp-bar textarea:focus { border-color: var(--accent); }
+    .cmp-send { flex-shrink: 0; padding: 9px 16px; border-radius: 999px; background: var(--grad); color: #fff; font-weight: 800; font-size: .86rem; }
+    .cmp-tools { display: flex; gap: 6px; }
+    .cmp-tools button { font-size: .74rem; font-weight: 700; color: var(--sub); padding: 3px 8px; border-radius: 8px; background: #eceef1; }
+    .cmp-edit { display: flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 800; color: var(--accent); background: var(--soft); padding: 6px 10px; border-radius: 10px; }
+    .cmp-edit button { font-size: .76rem; font-weight: 700; padding: 3px 10px; border-radius: 8px; background: #fff; }
+    .cmp-edit button.del { color: var(--danger); }
+    .kk-prev [data-k] { cursor: pointer; }
+    .kk-prev .kk-editing { outline: 2px dashed var(--accent); outline-offset: 2px; border-radius: 12px; }
+    .raw-fold { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; background: #fff; }
+    .raw-fold summary { cursor: pointer; font-size: .8rem; font-weight: 700; color: #4a4f57; }
+    .raw-fold[open] summary { margin-bottom: 8px; }
     .kk-prev { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); max-height: 420px; overflow-y: auto; }
     .who-note { font-size: .74rem; font-weight: 500; color: var(--sub); }
     .who-note b { font-weight: 800; }
@@ -586,7 +610,7 @@
         <div class="item">
           ${p.image ? `<img class="thumb" src="${esc(p.image)}" alt="" />` : `<div class="thumb">💞</div>`}
           <div class="item-main">
-            <div class="item-title">${esc(coupleById(p.couple).name)} | ${esc(ddText(p))}${p.title ? " " + esc(p.title) : ""}${p.hidden ? `<span class="badge hid">🙈 비공개</span>` : ""}${p.adult ? `<span class="badge">19+</span>` : ""}${isNew(p, "posts") ? `<span class="badge new">NEW</span>` : ""}</div>
+            <div class="item-title">${esc(coupleById(p.couple).name)} | ${esc(ddText(p))}${p.title ? " " + esc(p.title) : ""}${p.pinned ? `<span class="badge">📌 고정</span>` : ""}${p.hidden ? `<span class="badge hid">🙈 비공개</span>` : ""}${p.adult ? `<span class="badge">19+</span>` : ""}${isNew(p, "posts") ? `<span class="badge new">NEW</span>` : ""}</div>
             <div class="item-sub">${esc(p.date || "")} · 💬 대화 ${KK.parse(p.chat, coupleById(p.couple)).filter(m => m.t === "msg").length}개</div>
             <div class="item-sub">${esc(p.tagline || "")}</div>
           </div>
@@ -639,11 +663,10 @@
     const isImgFile = f => f && (/^image\//.test(f.type) || /\.(jpe?g|png|webp|gif|bmp|avif|heic|heif)$/i.test(f.name || ""));
     /* ---------- 💞 커플 ---------- */
     const coupleById = id => (data.couples || []).find(c => c.id === id) || { name: "(커플 없음)", left: "", right: "" };
-    const ddText = p => KK.dLabel(KK.dPlus(coupleById(p.couple).start, p.date)) || "D+?";
+    const ddText = p => KK.dLabel(KK.dPlus(coupleById(p.couple).start, p.ddFix ? p.date : undefined)) || "D+?";
     const BG_SWATCHES = ["#bacee0", "#c9d7e8", "#f4d6e1", "#ddd6f6", "#cfeee3", "#f3e6cf", "#dfe3e8", "#c7d9c4"];
     // 미니 견본: [배경, 왼쪽 말풍선, 오른쪽 말풍선]
-    const STYLE_SW = { kakao: ["#bacee0", "#fff", "#fee500"], imessage: ["#fff", "#e9e9eb", "#0a84ff"], insta: ["#fff", "#efefef", "linear-gradient(135deg,#a033ff,#3797f0)"], line: ["#8cabd9", "#fff", "#8de055"] };
-    const stylePick = (cur, withDefault) => `<div class="style-pick">${withDefault ? `<button type="button" data-style="" class="${!cur ? "on" : ""}"><span class="sw" style="background:repeating-linear-gradient(45deg,#f3f1fb 0 6px,#fff 6px 12px)"><i style="background:#ddd"></i><i style="background:#cfc4fa"></i></span>커플 기본값</button>` : ""}${Object.entries(KK.STYLES).map(([k, v]) => `<button type="button" data-style="${k}" class="${cur === k ? "on" : ""}"><span class="sw" style="background:${STYLE_SW[k][0]};${k === "imessage" || k === "insta" ? "box-shadow:inset 0 0 0 1px #eee" : ""}"><i style="background:${STYLE_SW[k][1]}"></i><i style="background:${STYLE_SW[k][2]}"></i></span>${v.label}</button>`).join("")}</div>`;
+    const stylePick = (cur, withDefault) => `<div class="style-pick">${withDefault ? `<button type="button" data-style="" class="${!cur ? "on" : ""}"><span class="sw" style="background:repeating-linear-gradient(45deg,#f3f1fb 0 6px,#fff 6px 12px)"><i style="background:#ddd"></i><i style="background:#cfc4fa"></i></span>커플 기본값</button>` : ""}${Object.entries(KK.STYLES).map(([k, v]) => `<button type="button" data-style="${k}" class="${cur === k ? "on" : ""}"><span class="sw" style="background:${v.sw[0]};box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)"><i style="background:${v.sw[1]}"></i><i style="background:${v.sw[2]}"></i></span>${v.label}</button>`).join("")}</div>`;
     const avBox = (name, img) => `<div class="av">${img ? `<img src="${esc(img)}" alt="" />` : esc((name || "?").charAt(0))}</div>`;
     function renderCouples() {
       const el = $("coupleList");
@@ -703,8 +726,8 @@
             <label class="f">사귄 날 (D+1) <input type="date" id="c_start" /></label>
             <div class="dd-big" id="c_dd"></div>
           </div>
-          <div class="f">💬 대화창 모양 <small>이 커플 기록의 기본 모양이에요 (기록마다 따로 바꿀 수도 있어요)</small><div id="c_style">${stylePick(item.style || "kakao")}</div></div>
-          <div class="f" id="c_bgBox">채팅방 배경색 <small>카카오톡 · 라인 모양일 때 써요</small>
+          <div class="f">💬 대화창 분위기 <small>이 커플 기록의 기본 모양이에요 (기록마다 따로 바꿀 수도 있어요)</small><div id="c_style">${stylePick(item.style || "kakao")}</div></div>
+          <div class="f" id="c_bgBox">채팅방 배경색 <small>카카오톡 분위기일 때 써요</small>
             <div class="swatches" id="c_bg">${BG_SWATCHES.map(c => `<button type="button" data-bg="${c}" style="background:${c}" aria-label="${c}"></button>`).join("")}<input type="color" id="c_bgPick" title="직접 고르기" /></div>
           </div>
           <div class="f">미리보기<div class="kk-prev" id="c_prev"></div></div>
@@ -730,7 +753,7 @@
         document.querySelectorAll("#c_bg [data-bg]").forEach(b => b.classList.toggle("on", b.dataset.bg === it.bg));
         $("c_bgPick").value = /^#[0-9a-f]{6}$/i.test(it.bg) ? it.bg : "#bacee0";
         const l = it.left || "상대", r = it.right || "나";
-        $("c_bgBox").classList.toggle("hidden", !KK.STYLES[it.style || "kakao"].bg);
+        $("c_bgBox").classList.toggle("hidden", (it.style || "kakao") !== "kakao");
         $("c_prev").innerHTML = KK.room(`--- 오늘\n[오후 9:41] ${l}: 뭐 해?\n[오후 9:41] ${l}: 보고 싶어서\n[오후 9:42] ${r}: 나도 ♥`, it, { head: true, dd: KK.dLabel(KK.dPlus(it.start)) });
       };
       ["c_L", "c_R", "c_start"].forEach(id => $(id).oninput = draw);
@@ -795,8 +818,11 @@
             <label class="f">커플 *<select id="f_couple">${data.couples.map(c => `<option value="${esc(c.id)}" ${c.id === item.couple ? "selected" : ""}>${esc(c.name)} (${esc(c.left)} ♡ ${esc(c.right)})</option>`).join("")}</select></label>
           </div>
           <div class="row" style="align-items:flex-end">
-            <label class="f">기록 날짜 <small>이 날 기준으로 D+가 계산돼요</small><input type="date" id="f_date" value="${esc(item.date)}" /></label>
+            <label class="f">기록 날짜<input type="date" id="f_date" value="${esc(item.date)}" /></label>
             <div class="dd-big" id="f_dd" style="flex:0 0 auto"></div>
+          </div>
+          <div style="margin-top:-6px">
+            <label class="check" style="font-size:.8rem"><input type="checkbox" id="f_ddFix" ${item.ddFix ? "checked" : ""} /> D+를 이 기록 날짜로 고정 <small style="font-weight:400;color:var(--sub)">(안 하면 사귄 날부터 오늘까지 매일 올라가요)</small></label>
           </div>
           <div class="img-box">
             <div class="img-prev" id="imgPrev">${item.image ? `<img src="${esc(item.image)}" alt="" />` : "사진<br/>없음"}</div>
@@ -823,18 +849,29 @@
           <label class="f">한 줄 소개<input type="text" id="f_tagline" value="${esc(item.tagline || "")}" /></label>
           <label class="f">메모 <small>사진 위에 보이는 글 · *기울기* · **두껍게**</small><textarea id="f_desc" style="min-height:70px">${esc(item.description || "")}</textarea></label>
           <div class="f">💬 대화 기록
-            <div class="chat-help">
-              한 줄에 하나씩 <code>이름: 대사</code> · 시간은 <code>[오후 3:21] 이름: 대사</code><br/>
-              날짜 구분선 <code>--- 11월 23일</code> · 이름 없이 쓰면 가운데 지문 <code>*둘은 웃었다*</code><br/>
-              빈 줄 없이 이어 쓴 줄은 바로 위 말풍선에 붙어요 · 카톡 <b>대화 내보내기</b> 글을 그대로 붙여넣어도 돼요
-            </div>
-            <div style="font-size:.78rem;color:#3d4650">대화창 모양</div>
+            <div style="font-size:.78rem;color:#3d4650">대화창 분위기</div>
             <div id="f_style">${stylePick(item.style || "", true)}</div>
-            <div class="chat-tools" id="chatTools"></div>
-            <textarea id="f_chat" spellcheck="false">${esc(item.chat)}</textarea>
-            <div class="who-note" id="whoNote"></div>
             <div class="kk-prev" id="chatPrev"></div>
+            <div class="who-note">👆 말풍선 · 날짜선 · 지문을 누르면 고치거나 지울 수 있어요</div>
+            <div class="composer" id="composer">
+              <div class="cmp-edit hidden" id="cmpEdit">✏️ 고치는 중<span style="flex:1"></span><button type="button" id="cmpDel" class="del">삭제</button><button type="button" id="cmpCancel">취소</button></div>
+              <div class="cmp-who" id="cmpWho"></div>
+              <div class="cmp-opt" id="cmpTimeRow"><label class="check"><input type="checkbox" id="cmpUseTime" /> 🕐 시간</label><input type="time" id="cmpTime" /><button type="button" id="cmpNow">지금</button></div>
+              <div class="cmp-bar"><textarea id="cmpText" rows="1" enterkeyhint="enter"></textarea><button type="button" class="cmp-send" id="cmpSend">보내기</button></div>
+              <div class="cmp-tools"><button type="button" id="cmpUndo">↩ 마지막 거 지우기</button><button type="button" id="cmpSample">예시 넣기</button></div>
+            </div>
+            <details class="raw-fold">
+              <summary>📝 글로 한꺼번에 쓰기 · 카톡 대화 내보내기 붙여넣기</summary>
+              <div class="chat-help">
+                한 줄에 하나씩 <code>이름: 대사</code> · 시간은 <code>[오후 3:21] 이름: 대사</code><br/>
+                날짜선 <code>--- 11월 23일</code> · 가운데 지문 <code>*둘은 웃었다*</code> (앞뒤로 빈 줄)<br/>
+                카톡 <b>대화 내보내기</b> 글을 그대로 붙여넣어도 돼요
+              </div>
+              <textarea id="f_chat" spellcheck="false">${esc(item.chat)}</textarea>
+              <div class="who-note" id="whoNote"></div>
+            </details>
           </div>
+          <label class="check"><input type="checkbox" id="f_pinned" ${item.pinned ? "checked" : ""} /> 📌 맨 위에 고정 <small style="font-weight:400;color:var(--sub)">홈 목록 맨 위에 떠요</small></label>
           <label class="check"><input type="checkbox" id="f_adult" ${item.adult ? "checked" : ""} /> 19+ 배지 달기</label>
           <label class="check"><input type="checkbox" id="f_hidden" ${item.hidden ? "checked" : ""} /> 🙈 비공개 <small style="font-weight:400;color:var(--sub)">사이트에 안 보이게 숨겨둬요</small></label>
           <div class="row" style="align-items:flex-end">
@@ -851,44 +888,117 @@
 
       $("dice").onclick = () => { const r = randomCounts(); $("f_likes").value = r.likes; $("f_rts").value = r.rts; };
 
-      // 💬 대화: 바로바로 카톡 미리보기
+      // 💬 대화: 누가 말하는지 고르고 → 쓰고 → 보내기 (말풍선 누르면 고치기)
       const cp = () => coupleById($("f_couple").value);
-      let chatT = 0;
+      let chatT = 0, who = "L", editK = null, editName = "";
+      const pad2 = n => String(n).padStart(2, "0");
+      const hm2kr = v => { const [h, m] = (v || "").split(":").map(Number); return isNaN(h) ? "" : `${h < 12 ? "오전" : "오후"} ${h % 12 || 12}:${pad2(m)}`; };
+      const kr2hm = t => { const m = /(오전|오후)\s*(\d{1,2}):(\d{2})/.exec(t || ""); if (!m) return ""; let h = +m[2] % 12; if (m[1] === "오후") h += 12; return `${pad2(h)}:${m[3]}`; };
+      const nowHM = () => { const d = new Date(); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+      const ddNow = () => { const c = cp(); return KK.dLabel(KK.dPlus(c.start, $("f_ddFix").checked ? $("f_date").value : undefined)); };
+      const dateLabel = () => { const d = ($("f_date").value || today()).split("-"); return `${+d[1]}월 ${+d[2]}일`; };
+      const drawWho = () => {
+        const c = cp(), l = c.left || "상대", r = c.right || "나";
+        const opts = [["L", `💬 ${l}`, "L"], ["R", `💬 ${r}`, "R"], ["date", "📅 날짜선", ""], ["narr", "✨ 지문", ""]];
+        $("cmpWho").innerHTML = opts.map(([k, t, cls]) => `<button type="button" data-who="${k}" class="${cls}${who === k ? " on" : ""}">${esc(t)}</button>`).join("");
+        const name = editName || (who === "R" ? r : l);
+        $("cmpText").placeholder = who === "date" ? "예: 11월 21일 토요일" : who === "narr" ? "예: 현관문 열리는 소리" : `${name}의 말`;
+        $("cmpTimeRow").classList.toggle("hidden", who === "date" || who === "narr");
+      };
       const drawChat = () => {
         const c = cp(), raw = $("f_chat").value, items = KK.parse(raw, c);
-        $("chatPrev").innerHTML = KK.room(raw, c, { style: edit.item.style || c.style, head: true, dd: KK.dLabel(KK.dPlus(c.start, $("f_date").value)) });
+        $("chatPrev").innerHTML = KK.room(raw, c, { style: edit.item.style || c.style, head: true, dd: ddNow() });
+        if (editK != null) $("chatPrev").querySelector(`[data-k="${editK}"]`)?.classList.add("kk-editing");
         const names = [...new Set(items.filter(m => m.t === "msg").map(m => m.name))];
         $("whoNote").innerHTML = names.length ? "말한 사람: " + names.map(n => n === c.right || n === "나" ? `<b>${esc(n)}</b>(오른쪽)` : n === c.left ? `<b>${esc(n)}</b>(왼쪽)` : `<b class="warn">${esc(n)}</b>(왼쪽 · 커플 이름과 달라요)`).join(" · ") : "";
-        $("f_dd").textContent = KK.dLabel(KK.dPlus(c.start, $("f_date").value)) || "";
-        const l = c.left || "상대", r = c.right || "나";
-        $("chatTools").innerHTML = `<button type="button" class="L" data-ins="${esc(l)}: ">+ ${esc(l)}</button><button type="button" class="R" data-ins="${esc(r)}: ">+ ${esc(r)}</button><button type="button" data-ins="time">+ 시간</button><button type="button" data-ins="--- ">+ 날짜선</button><button type="button" data-ins="**">+ 지문</button>${raw.trim() ? "" : `<button type="button" data-ins="sample">예시 넣기</button>`}`;
+        $("f_dd").textContent = ddNow() || "";
+        $("cmpSample").classList.toggle("hidden", !!raw.trim());
+        $("cmpUndo").classList.toggle("hidden", !items.length);
+        drawWho();
       };
-      const insert = text => {
-        const ta = $("f_chat"), v = ta.value, p = ta.selectionStart ?? v.length;
-        const lineStart = v.lastIndexOf("\n", p - 1) + 1, atLineStart = p === lineStart;
-        let ins = text;
-        if (text === "time") { const d = new Date(), h = d.getHours(); ins = `[${h < 12 ? "오전" : "오후"} ${h % 12 || 12}:${String(d.getMinutes()).padStart(2, "0")}] `; }
-        if (text === "**") ins = "**";
-        if (text === "--- ") { const d = $("f_date").value.split("-"); ins = d.length === 3 ? `--- ${+d[1]}월 ${+d[2]}일\n` : "--- "; }
-        if (text !== "time" && !atLineStart) ins = "\n" + ins;
-        ta.value = v.slice(0, p) + ins + v.slice(p);
-        ta.focus(); ta.selectionStart = ta.selectionEnd = text === "**" ? p + ins.length - 1 : p + ins.length;
-        drawChat();
+      const toBottom = () => { const p = $("chatPrev"); p.scrollTop = p.scrollHeight; };
+      // 지금 입력칸 내용을 대화 글 줄로 바꾸기
+      const makeLines = () => {
+        const c = cp(), text = $("cmpText").value.replace(/\s+$/, "").replace(/^\s+/, "");
+        if (!text) return null;
+        if (who === "date") return ["--- " + text.replace(/\n/g, " ")];
+        if (who === "narr") return ["*" + text.replace(/\n+/g, " ").replace(/^\*|\*$/g, "") + "*"];
+        const name = editName || (who === "R" ? c.right : c.left) || (who === "R" ? "나" : "상대");
+        const t = $("cmpUseTime").checked ? hm2kr($("cmpTime").value) : "";
+        const [first, ...rest] = text.split("\n");
+        return [`${t ? `[${t}] ` : ""}${name}: ${first}`, ...rest];
       };
-      $("chatTools").onclick = e => {
-        const b = e.target.closest("[data-ins]"); if (!b) return;
-        if (b.dataset.ins === "sample") {
-          const c = cp(), l = c.left || "상대", r = c.right || "나", d = ($("f_date").value || today()).split("-");
-          $("f_chat").value = `--- ${+d[1]}월 ${+d[2]}일\n[오후 9:40] ${l}: 자?\n[오후 9:40] ${l}: 아니 그냥\n보고 싶어서 ♥\n[오후 9:42] ${r}: 나도\n[오후 9:42] ${r}: 지금 나갈까?\n\n*십 분 뒤, 현관 앞*\n\n[오후 9:53] ${l}: 진짜 왔네 ㅋㅋ`;
-          drawChat(); return;
+      const resetComposer = () => {
+        editK = null; editName = ""; $("cmpText").value = "";
+        $("cmpEdit").classList.add("hidden"); $("cmpSend").textContent = "보내기"; autoGrow();
+      };
+      const setRaw = v => { $("f_chat").value = v.replace(/\n{3,}/g, "\n\n").replace(/^\n+/, ""); drawChat(); };
+      const send = () => {
+        const L = makeLines(); if (!L) { $("cmpText").focus(); return; }
+        const raw = $("f_chat").value;
+        if (editK != null) {
+          const it = KK.parse(raw, cp())[editK], lines = raw.split("\n");
+          if (it && it.ln) { lines.splice(it.ln[0], it.ln[1] - it.ln[0] + 1, ...L); setRaw(lines.join("\n")); }
+          resetComposer(); toast("고쳤어요"); return;
         }
-        insert(b.dataset.ins);
+        const v = raw.replace(/\s+$/, ""), prev = KK.parse(v, cp()).pop();
+        const gap = who === "narr" || (prev && prev.t === "narr") ? "\n\n" : "\n";   // 지문 앞뒤는 한 줄 띄워요
+        setRaw(v + (v ? gap : "") + L.join("\n"));
+        $("cmpText").value = ""; autoGrow(); toBottom();
+        if (!isDesktop()) $("cmpText").blur(); else $("cmpText").focus();
       };
-      $("f_chat").oninput = () => { clearTimeout(chatT); chatT = setTimeout(drawChat, 120); };
-      $("f_couple").onchange = () => { store.set("cp_last_couple", $("f_couple").value); drawChat(); };
+      const autoGrow = () => { const t = $("cmpText"); t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 140) + "px"; };
+      $("cmpText").oninput = autoGrow;
+      $("cmpText").onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229 && isDesktop()) { e.preventDefault(); send(); } };
+      $("cmpSend").onclick = send;
+      $("cmpWho").onclick = e => {
+        const b = e.target.closest("[data-who]"); if (!b) return;
+        who = b.dataset.who; editName = "";
+        if (who === "date" && !$("cmpText").value.trim()) $("cmpText").value = dateLabel();
+        drawWho(); $("cmpText").focus();
+      };
+      $("cmpNow").onclick = () => { $("cmpTime").value = nowHM(); $("cmpUseTime").checked = true; };
+      $("cmpUndo").onclick = () => {
+        const raw = $("f_chat").value, items = KK.parse(raw, cp()), last = items.filter(m => m.ln).pop(); if (!last) return;
+        const lines = raw.split("\n"); lines.splice(last.ln[0], last.ln[1] - last.ln[0] + 1); setRaw(lines.join("\n")); resetComposer(); toBottom();
+      };
+      $("cmpDel").onclick = () => {
+        const raw = $("f_chat").value, it = KK.parse(raw, cp())[editK]; if (!it || !it.ln) return resetComposer();
+        const lines = raw.split("\n"); lines.splice(it.ln[0], it.ln[1] - it.ln[0] + 1); setRaw(lines.join("\n")); resetComposer(); toast("지웠어요");
+      };
+      $("cmpCancel").onclick = () => { resetComposer(); drawChat(); };
+      // 미리보기에서 말풍선 누르면 → 입력칸으로 불러와서 고치기
+      $("chatPrev").onclick = e => {
+        const el = e.target.closest("[data-k]"); if (!el) return;
+        const k = +el.dataset.k, it = KK.parse($("f_chat").value, cp())[k]; if (!it || !it.ln) return;
+        editK = k; editName = "";
+        if (it.t === "date") { who = "date"; $("cmpText").value = it.text; }
+        else if (it.t === "narr") { who = "narr"; $("cmpText").value = it.text.replace(/^\*|\*$/g, ""); }
+        else {
+          const c = cp();
+          who = it.side === "R" ? "R" : "L";
+          if (it.name !== (who === "R" ? c.right : c.left)) editName = it.name;   // 커플 이름이 아닌 사람은 이름 그대로
+          $("cmpUseTime").checked = !!it.time; if (it.time) $("cmpTime").value = kr2hm(it.time);
+          $("cmpText").value = it.text;
+        }
+        $("cmpEdit").classList.remove("hidden"); $("cmpSend").textContent = "고치기";
+        drawChat(); autoGrow();
+        $("composer").scrollIntoView({ behavior: "smooth", block: "nearest" });
+      };
+      $("cmpSample").onclick = () => {
+        const c = cp(), l = c.left || "상대", r = c.right || "나";
+        setRaw(`--- ${dateLabel()}\n[오후 9:40] ${l}: 자?\n[오후 9:40] ${l}: 아니 그냥\n보고 싶어서 ♥\n[오후 9:42] ${r}: 나도\n[오후 9:42] ${r}: 지금 나갈까?\n\n*십 분 뒤, 현관 앞*\n\n[오후 9:53] ${l}: 진짜 왔네 ㅋㅋ`);
+      };
+      $("f_chat").oninput = () => { clearTimeout(chatT); chatT = setTimeout(() => { resetComposer(); drawChat(); }, 150); };
+      $("f_couple").onchange = () => { store.set("cp_last_couple", $("f_couple").value); resetComposer(); drawChat(); };
       $("f_date").oninput = drawChat;
+      $("f_ddFix").onchange = drawChat;
       $("f_style").onclick = e => { const b = e.target.closest("[data-style]"); if (!b) return; edit.item.style = b.dataset.style; $("f_style").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); drawChat(); };
-      drawChat();
+      // 시간: 대화에 시간이 이미 있으면 켜두고, 마지막 시간부터 이어서
+      { const its = KK.parse(item.chat, cp()).filter(m => m.t === "msg"), lastT = its.length ? its[its.length - 1].time : "";
+        $("cmpUseTime").checked = !its.length || !!lastT; $("cmpTime").value = kr2hm(lastT) || nowHM();
+        const lastMsg = its[its.length - 1]; if (lastMsg) who = lastMsg.side === "R" ? "L" : "R"; }
+      drawChat(); toBottom();
 
       // 목록 미리보기(3:1) 위치: 0 = 맨 위, 100 = 맨 아래
       if (typeof item.previewPos !== "number") item.previewPos = 25;
@@ -1099,6 +1209,8 @@
       it.chat = $("f_chat").value.replace(/\s+$/, "");
       it.adult = $("f_adult").checked;
       if ($("f_hidden").checked) it.hidden = true; else delete it.hidden;
+      if ($("f_pinned").checked) it.pinned = true; else delete it.pinned;
+      if ($("f_ddFix").checked) it.ddFix = true; else delete it.ddFix;
       it.likes = Math.max(0, parseInt($("f_likes").value) || 0);
       it.rts = Math.max(0, parseInt($("f_rts").value) || 0);
       ["title", "tagline", "description", "style"].forEach(k => { if (!it[k]) delete it[k]; });
