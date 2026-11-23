@@ -140,7 +140,12 @@
     lovely:       { label: "러블리",          ava: "top",    name: true,  time: "side",   bg: true, defBg: "#ffe3ec", sw: ["#ffe3ec", "#fff", "linear-gradient(135deg,#ff8fb1,#ffb3c6)"] },
     discord:      { label: "디스코드",        ava: "top",    name: true,  time: "head",   both: true, sw: ["#313338", "#4e5058", "#5865f2"] },
     diary:        { label: "다이어리",        ava: "none",   name: true,  time: "head",   both: true, sw: ["repeating-linear-gradient(#fbf6ea 0 9px,#e8dcc4 9px 10px)", "#7a9cc6", "#d9849b"] },
-    retro:        { label: "옛날 메신저",     ava: "none",   name: true,  time: "head",   both: true, sw: ["linear-gradient(#2a5bd7 0 30%,#ece9d8 30%)", "#2457c5", "#c0392b"] }
+    retro:        { label: "옛날 메신저",     ava: "none",   name: true,  time: "head",   both: true, sw: ["linear-gradient(#2a5bd7 0 30%,#ece9d8 30%)", "#2457c5", "#c0392b"] },
+    simple:       { label: "심플",            ava: "top",    name: true,  time: "side",   sw: ["#fff", "#f1f2f4", "var(--grad)"] },
+    outline:      { label: "테두리",          ava: "top",    name: true,  time: "side",   sw: ["#fff", "#e3e5e8", "var(--accent)"] },
+    card:         { label: "카드",            ava: "top",    name: true,  time: "side",   sw: ["#f3f4f6", "#fff", "var(--soft)"] },
+    minidark:     { label: "미니멀 다크",     ava: "top",    name: true,  time: "side",   sw: ["#141517", "#2a2c30", "#f5f5f5"] },
+    script:       { label: "대본",            ava: "none",   name: true,  time: "none",   both: true, sw: ["#fff", "#d5d8dc", "var(--accent)"] }
   };
   const styleOf = k => STYLES[k] ? k : "kakao";
 
@@ -430,7 +435,61 @@
     .st-retro .kk-date span { background: none; color: #808080; padding: 0; border-radius: 0; font-weight: 400; }
     .st-retro .kk-date span::before { content: "─── "; } .st-retro .kk-date span::after { content: " ───"; }
     .st-retro .kk-narr { background: none; text-align: left; color: #008000; margin: 4px 0; padding: 0; font-size: .8rem; }
-    .st-retro .kk-narr::before { content: "* "; }`;
+    .st-retro .kk-narr::before { content: "* "; }
+
+    /* 깔끔한 분위기들: 사이트 메인 색을 따라가요 */
+    .kk-room { --mc: var(--blue, var(--accent, #8b7cf0)); --mg: var(--grad-strong, var(--grad, #8b7cf0)); --ms: var(--blue-soft, var(--soft, #f1eefe)); }
+    :is(.st-simple, .st-outline, .st-card, .st-script) .kk-head { background: #fff; color: #1f2329; border-bottom: 1px solid #eef0f2; }
+    :is(.st-simple, .st-outline, .st-card, .st-script) .kh-dd { background: var(--ms); color: var(--mc); }
+    :is(.st-simple, .st-outline, .st-card, .st-minidark) .kk-ava { border-radius: 50%; width: 34px; height: 34px; font-size: .8rem; background: var(--ms); color: var(--mc); }
+    :is(.st-simple, .st-outline, .st-card) .kk-name { color: #6b7178; font-size: .74rem; }
+    :is(.st-simple, .st-outline, .st-card) .kk-time { color: #a0a5ab; }
+    :is(.st-simple, .st-outline, .st-card, .st-script) .kk-date span { background: none; color: #a0a5ab; padding: 0; font-weight: 600; }
+    :is(.st-simple, .st-outline, .st-card, .st-script) .kk-narr { background: none; color: #9aa0a6; font-size: .78rem; }
+
+    /* 심플 */
+    .st-simple .kk { background: #fff; padding: 10px 14px 20px; }
+    .st-simple .kk-bub { background: #f1f2f4; color: #1f2329; border-radius: 18px; padding: 8px 13px; }
+    .st-simple .R .kk-bub { background: var(--mg); color: #fff; }
+
+    /* 테두리 */
+    .st-outline .kk { background: #fff; padding: 10px 14px 20px; }
+    .st-outline .kk-bub { background: #fff; color: #1f2329; border: 1.5px solid #e3e5e8; border-radius: 16px; padding: 7px 12px; }
+    .st-outline .R .kk-bub { background: #fff; border-color: var(--mc); color: #1f2329; }
+    .st-outline .kk-date span { border: 1px solid #e3e5e8; padding: 2px 10px; border-radius: 999px; }
+
+    /* 카드 */
+    .st-card .kk { background: #f3f4f6; padding: 10px 14px 20px; }
+    .st-card .kk-bub { background: #fff; color: #1f2329; border-radius: 14px; padding: 9px 13px; box-shadow: 0 1px 3px rgba(20,24,30,.07); }
+    .st-card .R .kk-bub { background: var(--ms); color: #1f2329; box-shadow: none; }
+    .st-card .kk-date span { background: #e7e9ec; color: #7a8088; padding: 3px 11px; border-radius: 999px; }
+
+    /* 미니멀 다크 */
+    .st-minidark .kk { background: #141517; padding: 10px 14px 20px; }
+    .st-minidark .kk-head { background: #1b1c1f; color: #f1f1f3; border-bottom: 1px solid #26282c; }
+    .st-minidark .kk-head small { color: #6f7378; }
+    .st-minidark .kh-dd { background: #2a2c30; color: #f1f1f3; }
+    .st-minidark .kk-ava { background: #2a2c30; color: #c9ccd1; }
+    .st-minidark .kk-name { color: #8a8f96; font-size: .74rem; }
+    .st-minidark .kk-bub { background: #2a2c30; color: #ececee; border-radius: 16px; padding: 8px 12px; }
+    .st-minidark .R .kk-bub { background: #f5f5f5; color: #111; }
+    .st-minidark .kk-time { color: #6f7378; }
+    .st-minidark .kk-date span { background: none; color: #6f7378; padding: 0; }
+    .st-minidark .kk-narr { background: none; color: #6f7378; font-size: .78rem; }
+
+    /* 대본 */
+    .st-script .kk { background: #fff; padding: 14px 16px 22px; }
+    .st-script .kk-row, .st-script .kk-row.first { margin-top: 2px; }
+    .st-script .kk-row.first { margin-top: 10px; }
+    .st-script .kk-body { flex-direction: row; gap: 12px; align-items: flex-start; }
+    .st-script .kk-name { flex: 0 0 64px; text-align: right; margin: 0; font-weight: 800; font-size: .84rem; color: #8a9099; line-height: 1.55; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .st-script .R .kk-name { color: var(--mc); }
+    .st-script .kk-row:not(.first) .kk-line { margin-left: 76px; }
+    .st-script .kk-bub, .st-script .R .kk-bub { background: none; color: #2b2f35; padding: 0; border-radius: 0; font-size: .9rem; line-height: 1.55; }
+    .st-script .kk-date { margin: 14px 0 6px; }
+    .st-script .kk-date span::before { content: "— "; } .st-script .kk-date span::after { content: " —"; }
+    .st-script .kk-narr { text-align: left; margin: 8px 0 8px 76px; padding: 0; font-style: italic; }
+    .st-script .kk-narr::before { content: "("; } .st-script .kk-narr::after { content: ")"; }`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
   window.KK = { parse, render, room, head, dPlus, dLabel, fmt, esc, STYLES, PALETTES, palette, applyPalette };
